@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>
+    <%= title %>
+  </title>
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+  <script src="/javascripts/cvMath.js" type="text/javascript"></script>
+
+  <script src="/javascripts/utils.js" type="text/javascript"></script>
+ 
+  <script src="/javascripts/Video.js" type="text/javascript"></script>
+  <script src="/javascripts/gllib/webgl-utils.js"></script>
+  <script src="/javascripts/gllib/webgl-debug.js"></script>
+  <script src="/javascripts/gllib/cuon-utils.js"></script>
+  <script src="/javascripts/gllib/initShaders.js"></script>
+  <script src="/javascripts/gllib/flatten.js"></script>
+  <script src="/javascripts/gllib/dat.gui.min.js"></script>
+  <script src="/javascripts/gllib/gl-matrix-min.js"></script>
+  <script src="/javascripts/gllib/modelVewMatrixStack.js"></script>
+  <script src="/javascripts/glCameraPlayer.js" type="text/javascript"></script>
+  <script src="/javascripts/glTargetVideoPlayer.js" type="text/javascript"></script>
+  <script src="/javascripts/glScene.js" type="text/javascript"></script>
+  <script src="/javascripts/pRect.js" type="text/javascript"></script>
+  <script src="/javascripts/WebAR.js" type="text/javascript"></script>
+  <script src="/javascripts/Camera.js" type="text/javascript"></script>
+  <script src="/javascripts/Proc.js" type="text/javascript"></script>
+  <script src="/javascripts/TargetVideo.js" type="text/javascript"></script>
+  <script src="/javascripts/getHistogram.js" type="text/javascript"></script>
+  <script src="/javascripts/TestCVImage.js" type="text/javascript"></script>
+  <script src="/javascripts/getMatchTemplate.js" type="text/javascript"></script>
+</head>
+
+<body >
+
+  <h2>Start AR Video</h2>
+  <p id="errorlbl">loading data....</p>
+  <div>
+    <div class="camera_preview">
+      <canvas id="glview" width=640 height=480 style="max-width: 100%"></canvas>
+      <canvas id="preview" width=1024 height=1024 style="max-width: 100%"></canvas>
+    </div>
+    <div><button onclick="testRemove()">Try remove</button></div>
+    
+    <script id="vertex-shader" type="x-shader/x-vertex">
+      attribute vec4 a_Position;
+      attribute vec4 a_Color;
+      varying vec4 colorOut;
+      uniform mat4 u_mvMatrix;
+      uniform mat4 u_pMatrix;
+      void
+      main()
+      {
+      gl_Position = u_pMatrix * u_mvMatrix * a_Position; 
+      colorOut = a_Color;
+      }
+      </script>
+      <script id="fragment-shader" type="x-shader/x-fragment">
+      precision mediump float;
+      varying vec4 colorOut;
+      void
+      main()
+      {
+      //gl_FragColor = vec4( 1.0, 1.0, 0.0, 1.0 );
+      gl_FragColor = colorOut;
+      }
+    </script>
+  </div>
+
+  <script type="text/javascript">
+    var testRemoveFlag=false;
+    function testRemove(){
+      testRemoveFlag = !testRemoveFlag;
+    }
+
+    var classifier;
+    function callBack() {
+      console.log('Listen');
+
+    }
+    workInit();
+    function workInit() {
+
+
+      let utils = new Utils('errorlbl');
+      utils.loadOpenCv(() => {
+           
+               onOpenCvReady();
+               utils.loadPatternFiles((patterlist)=>{
+                main(patterlist); 
+               })
+              
+           
+
+      });
+    
+
+    }
+    function main(vp_list) {  
+
+     // imageproc('preview','/face_data/test2.jpg');
+    //  var img1;
+    //  getGrayPattern('/face_data/pattern_images/mountain.jpg','glview',(img)=>{
+    //   //cv.imshow(glview,img);
+    //   imag1=img;
+
+    //  });
+    //  getGrayPattern('/face_data/pattern_images/stage.jpg','glview',(img)=>{
+    //   //cv.imshow(glview,img);
+    //   imag2=img;
+    //   getcalculate(imag1,imag2);
+   
+    
+
+    //  });
+      // var test=getHistogramFromData(histoData);
+      // var base=getHistogramFromData(vp_list[0].pattern);
+      // var diff=compareImage(test, base);
+    
+
+      var worker = new Worker('/javascripts/Proc.js');
+      worker.postMessage({'cmd':   'import', 
+                        'data':0
+                      });
+
+      let that =this;
+      worker.onmessage = function(e) {
+     let glview = document.getElementById('glview');
+      var webAR = new WebAR(640, 480, vp_list,worker); 
+  
+      webAR.run(glview);
+      };
+    
+    //   var base=comptwo('/face_data/sss.jpg','/face_data/test2.jpg');
+
+    //  // var kkk=getHistogramFromData(data);
+    //  // var vvv=compareImage(kkk,kkk);
+     
+    //   let preview = document.getElementById('preview');
+    //   var webAR = new WebAR(640, 480, document);  
+   
+    //   webAR.run(preview);
+   // const canvasInput = document.createElement('canvas');
+ 
+
+   
+
+      // camera.test(preview);
+
+
+    };
+    function onOpenCvReady() {
+      
+      document.getElementById('errorlbl').innerHTML = 'WebAR is ready.';
+   
+    }
+
+
+
+
+  </script>
+
+
+</body>
+
+</html>
